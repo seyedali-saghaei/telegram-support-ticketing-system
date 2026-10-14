@@ -141,7 +141,8 @@ docs/SECURITY.md            Security and privacy checklist
 - [ ] Add a complete example Google Apps Script or make Sheets integration fully optional
 - [ ] Review rate limits, monitoring, and data retention
 - [ ] Complete pre-publication security review
-- [ ] Choose an open-source license and publish a stable release
+- [x] Adopt the MIT License
+- [ ] Publish a stable release after verification
 
 ## Contributing
 
@@ -149,4 +150,4 @@ Contributions and issues will be welcome after the repository is opened publicly
 
 ## License
 
-**Not yet licensed for public reuse.** A license will be selected before public release.
+Licensed under the [MIT License](LICENSE). Copyright (c) 2026 Seyedali Saghaei.
