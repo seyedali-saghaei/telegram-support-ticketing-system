@@ -1,0 +1,6 @@
+# Local development only. Copy to .dev.vars and supply your own values.
+# Never commit the populated .dev.vars file.
+BOT_TOKEN=replace-with-your-telegram-bot-token
+TELEGRAM_WEBHOOK_SECRET=replace-with-random-secret
+BOARD_CHAT_ID=replace-with-admin-group-chat-id
+ADMIN_USER_IDS=replace-with-comma-separated-telegram-user-ids
