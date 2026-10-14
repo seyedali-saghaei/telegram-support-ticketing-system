@@ -767,7 +767,7 @@ async function receiveBoard(env, m) {
 
       UPDATE messages
 
-      SET status = CASE WHEN status = 'Erledigt' THEN 'Erledigt' ELSE 'Antwort_ausstehend' END,
+      SET status = CASE WHEN status = 'Resolved' THEN 'Resolved' ELSE 'Awaiting_reply' END,
 
           reply_text = ?,
 
@@ -850,7 +850,7 @@ async function callback(env, q) {
 
   ) {
 
-    await answer('Keine Berechtigung', true);
+    await answer('Not authorized', true);
 
     return;
 
@@ -866,7 +866,7 @@ async function callback(env, q) {
 
   if (!match) {
 
-    await answer('Unbekannte Aktion');
+    await answer('Unknown action');
 
     return;
 
@@ -890,7 +890,7 @@ async function callback(env, q) {
 
   if (!m) {
 
-    await answer('Nachricht nicht gefunden', true);
+    await answer('Ticket not found', true);
 
     return;
 
@@ -923,11 +923,11 @@ if (action === 'reply') {
         ) LIMIT 1
     `).bind(id).first();
     if (pending) {
-      await answer('Antworten noch nicht vollständig zugestellt', true);
+      await answer('Some replies have not been delivered yet', true);
       return;
     }
     await env.DB.prepare(`
-      UPDATE messages SET status = 'Erledigt',
+      UPDATE messages SET status = 'Resolved',
         replied_at = COALESCE(replied_at, CURRENT_TIMESTAMP)
       WHERE id = ?
     `).bind(id).run();
@@ -936,7 +936,7 @@ if (action === 'reply') {
       await answer('Done');
     } catch (e) {
       console.error('Board completion edit failed:', id, String(e));
-      await answer('Status gespeichert; Anzeige wird später korrigiert', true);
+      await answer('Status saved; the group message will be updated later', true);
     }
     return;
   }
@@ -1070,7 +1070,7 @@ async function buildBoardPostDetails(env, m) {
   }[m.category] || '📨';
   const lastResponder = replies.length
     ? (replies[replies.length - 1].admin_name || 'Unknown') : null;
-  const status = m.status === 'Erledigt'
+  const status = m.status === 'Resolved'
     ? '✅ Resolved'
     : replies.length ? '✅ Mark resolved' : '⏳ Awaiting reply';
 
@@ -1227,7 +1227,7 @@ async function deliverBoard(env, m) {
 
       SET board_message_id = ?,
 
-          status = 'Offen'
+          status = 'Open'
 
       WHERE id = ?
 
@@ -1440,13 +1440,13 @@ async function updateReplyStatus(env, id) {
 
       UPDATE messages
 
-      SET status = 'Beantwortet',
+      SET status = 'Answered',
 
           replied_at = CURRENT_TIMESTAMP
 
       WHERE id = ?
 
-      AND status != 'Erledigt'
+      AND status != 'Resolved'
 
     `).bind(id).run();
 
@@ -1456,11 +1456,11 @@ async function updateReplyStatus(env, id) {
 
       UPDATE messages
 
-      SET status = 'Antwort_ausstehend'
+      SET status = 'Awaiting_reply'
 
       WHERE id = ?
 
-     AND status != 'Erledigt'
+     AND status != 'Resolved'
 
     `).bind(id).run();
 
@@ -1562,13 +1562,13 @@ async function processJob(env, job) {
         }
       } else if (job.job_type === 'member') {
         // Compatibility with older v3 jobs.
-        if (m.status !== 'Beantwortet' && m.status !== 'Erledigt' && m.reply_text) {
+        if (m.status !== 'Answered' && m.status !== 'Resolved' && m.reply_text) {
           await send(env, m.telegram_chat_id,
             '📬 Support team reply:\n\n' + m.reply_text);
           await env.DB.prepare(`
-            UPDATE messages SET status = 'Beantwortet',
+            UPDATE messages SET status = 'Answered',
               replied_at = CURRENT_TIMESTAMP WHERE id = ?
-              AND status != 'Erledigt'
+              AND status != 'Resolved'
           `).bind(m.id).run();
         }
       } else {
