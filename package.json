@@ -1,0 +1,17 @@
+{
+  "name": "telegram-support-ticketing-system",
+  "private": true,
+  "version": "1.0.0-dev",
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/index.js",
+    "test": "node --test",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply telegram-support-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply telegram-support-db --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
