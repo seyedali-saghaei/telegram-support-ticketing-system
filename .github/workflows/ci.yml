@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Worker syntax
+        run: npm run check
+      - name: Run tests
+        run: npm test
+      - name: Check for organization-specific text
+        run: |
+          if grep -Eni 'آوا|انجمن|ایزاک|seyedali|saghaei|\bawa\b' src/index.js; then
+            echo 'Organization-specific text found in Worker source.'
+            exit 1
+          fi
