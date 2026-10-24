@@ -2,11 +2,11 @@
 
 const CATEGORIES = {
 
-  '❓ Question': 'Support update',
+  '❓ Question': 'Question',
 
-  '💡 Suggestion': 'Support update',
+  '💡 Suggestion': 'Suggestion',
 
-  '📢 Feedback': 'Support update'
+  '📢 Feedback': 'Feedback'
 
 };
 
@@ -315,7 +315,7 @@ async function closeThread(env, chatId, thread) {
       board_dirty = 1 WHERE request_id = ?`).bind(thread.request_id),
     env.DB.prepare(`DELETE FROM conversations WHERE chat_id = ?`).bind(String(chatId))
   ]);
-  await send(env, chatId, '🔒 Support update', { reply_markup: MENU });
+  await send(env, chatId, '🔒 Conversation closed.', { reply_markup: MENU });
 }
 
 // MEMBER MESSAGES
@@ -1077,17 +1077,17 @@ async function buildBoardPostDetails(env, m) {
   const answered = replies.length > 0 && (lastUser === 0 || lastAdmin > lastUser);
   const status = closed ? '🔒 Conversation closed' : answered ? '✅ Replied' : '⏳ Awaiting reply';
   const name = [m.telegram_first_name, m.telegram_last_name].filter(Boolean).join(' ') || 'Name unavailable';
-  const prefix = `📨 Support update'Message'}\n🎯 Support update'General'}\n` +
+  const prefix = `📨 Request #${m.id}\n${m.category || 'Message'}\n🎯 Event: ${m.program_name || 'General'}\n` +
     `👤 ${name}\n🆔 ${m.telegram_chat_id}\n🔗 ${m.telegram_username ? '@' + m.telegram_username : 'None'}\n\n` +
-    `💬 Support update'').slice(0, 800)}\n\n💬 Support update`;
-  const suffix = `\n\n📌 Support update`;
+    `💬 Original message:\n${String(m.message_text || '').slice(0, 800)}\n\n💬 Follow-up conversation:\n`;
+  const suffix = `\n\n📌 Status: ${status}`;
   const visible = [];
   let size = prefix.length + suffix.length + 100;
   for (let i = timeline.length - 1; i >= 0; i--) {
     const e = timeline[i];
     const r = e.role === 'admin' ? replyById.get(e.source_id) : null;
     const entry = e.role === 'user'
-      ? `👤 Support update`
+      ? `👤 Member:\n${e.content}`
       : `👥 ${r?.admin_name || 'Admin team'}:\n${r?.reply_text || e.content || '[Media]'}`;
     if (size + entry.length + 2 > 4096) break;
     visible.unshift({ entry, replyId: r?.id });
@@ -1303,7 +1303,7 @@ async function deliverReply(env, id) {
 
   const active = await activeThread(env, r.telegram_chat_id);
   const continuing = active?.request_id === r.request_id;
-  const closingText = '\n\nSupport update';
+  const closingText = '\n\nWould you like to close the conversation?';
 
   if (r.telegram_file_id) {
 
@@ -1337,7 +1337,7 @@ async function deliverReply(env, id) {
 
       r.telegram_chat_id,
 
-      `📬 Support update` +
+      `📬 Reply from the support team:\n\n` +
 
       r.reply_text + (continuing ? closingText : ''),
       continuing ? { reply_markup: CLOSE_MENU } : {}
@@ -1560,7 +1560,7 @@ async function processJob(env, job) {
 
           await send(env, m.telegram_chat_id,
 
-            '✅ Support update',
+            '✅ Your message was received and forwarded to the support team.\nWe will reply here.\n\nWould you like to close the conversation?',
 
             { reply_markup: (await activeThread(env, m.telegram_chat_id))?.request_id === m.id ? CLOSE_MENU : MENU });
 
