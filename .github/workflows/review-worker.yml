@@ -1,0 +1,30 @@
+name: Review sanitized Worker
+
+on:
+  push:
+    branches:
+      - feature/sanitized-thread-channel-worker
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - '.github/workflows/review-worker.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check src/index.js
+          node --check src/production-port.js
+      - name: Run tests
+        run: npm test
