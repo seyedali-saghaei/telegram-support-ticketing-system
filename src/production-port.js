@@ -946,11 +946,15 @@ async function handleUpdate(env, u) {
       ...String(env.TEST_CHANNEL_IDS || '').split(',').map(v => v.trim()).filter(Boolean), // Test channels
       ...String(env.PRODUCTION_CHANNEL_IDS || '').split(',').map(v => v.trim()).filter(Boolean) // Production channels
     ]);    
-    const SUPPORT_BOT_URL = env.SUPPORT_BOT_URL;
+    const SUPPORT_BOT_URL = String(env.SUPPORT_BOT_URL || '').trim();
+    if (!/^https:\/\/t\.me\/[A-Za-z0-9_]+$/.test(SUPPORT_BOT_URL)) {
+      console.error('SUPPORT_BUTTON_CONFIG_MISSING');
+      return;
+    }
     const SUPPORT_BUTTON_TEXT = 'Contact support';
 
     // Never modify posts from other channels.
-      if (!ALLOWED_CHANNEL_IDS.has(String(m.chat.id))) {
+    if (!ALLOWED_CHANNEL_IDS.has(String(m.chat.id))) {
       return;
     }
 
